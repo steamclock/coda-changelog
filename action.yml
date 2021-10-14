@@ -1,7 +1,10 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'Coda-Changelog'
+description: 'A Github action that sends your commit information to a Coda document'
+author: 'Steamclock Software'
 inputs:
+  commits: # change this
+    required: true
+    description: 'list of commits'
   milliseconds: # change this
     required: true
     description: 'input description here'
