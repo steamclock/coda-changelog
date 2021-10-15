@@ -7,7 +7,7 @@ async function run(): Promise<void> {
     const token = core.getInput('coda-token')
     const docId = core.getInput('doc-id')
     console.log(`List of commits: ${commits}`)
-    console.log(`token: ${commits}`)
+    console.log(`token: ${token}`)
     console.log(`docId: ${docId}`)
     core.setOutput('time', new Date().toTimeString())
   } catch (error) {
