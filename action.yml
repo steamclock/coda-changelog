@@ -2,13 +2,12 @@ name: 'Coda-Changelog'
 description: 'A Github action that sends your commit information to a Coda document'
 author: 'Steamclock Software'
 inputs:
-  commits: # change this
-    required: true
+  commits: 
     description: 'list of commits'
-  milliseconds: # change this
-    required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+  doc-id:
+    description: 'id of coda document'
+  token:
+    description: 'Defines the token used to access a specific Coda document'
 runs:
   using: 'node12'
   main: 'dist/index.js'
