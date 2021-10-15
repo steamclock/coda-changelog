@@ -25,7 +25,9 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.6.0"
+    "@actions/core": "^1.6.0",
+    "axios": "^0.23.0",
+    "moment": "^2.29.1"
   },
   "devDependencies": {
     "@types/node": "^16.10.5",
