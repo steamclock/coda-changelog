@@ -6,7 +6,7 @@ inputs:
     description: 'list of commits'
   doc-id:
     description: 'id of coda document'
-  token:
+  coda-token:
     description: 'Defines the token used to access a specific Coda document'
 runs:
   using: 'node12'
