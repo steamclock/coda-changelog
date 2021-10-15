@@ -9,9 +9,10 @@ async function run(): Promise<void> {
     const token = core.getInput('coda-token')
     const docId = core.getInput('doc-id')
     var columns = await api.getColumnsForTable(docId, 'Release 2.0')
-    console.log(`List of column ids: ${columns}`)
     await api.insertRows(docId, 'Release 2.0', rowBuilder.buildRow(columns, commits[0]))
  
+    console.log(" WE ARE RUNNING LATEST ")
+    console.log(`List of column ids: ${columns}`)
     console.log(`List of commits: ${commits}`)
     console.log(`token: ${token}`)
     console.log(`docId: ${docId}`)
