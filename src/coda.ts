@@ -1,29 +1,9 @@
 const axios = require('axios').default;
 import * as core from '@actions/core'
+import { Rows, Column } from './model/table'
 
 axios.defaults.baseURL = "https://coda.io/apis/v1/"
 axios.defaults.headers.common['Authorization'] = `Bearer ${core.getInput('coda-token')}`;
-
-export interface Column {  
-    id: string
-    type: string
-    name: string
-    href: string
-    display: true   
-}
-
-export interface Row {
-    cells: [TableCell]
-}
-
-export interface Rows {
-    rows: Row[]
-}
-
-export interface TableCell {
-    column: string //Column Id
-    value: string
-}
 
 async function getTables(docId: string) {
     return axios 
