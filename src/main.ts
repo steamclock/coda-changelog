@@ -27,7 +27,8 @@ async function run(): Promise<void> {
     console.log(`tableName: ${tableName}`)
     console.log(`docId: ${docId}`)
 
-    const commitSinceTag = await commits.getCommitHistory(token, owner, repo, fromTag, "main")
+    //TODO: if fromTag is empty or Coda table has rows skip this step
+    const commitSinceTag = await commits.getCommitHistory(token, owner, repo, fromTag, branch)
 
     var columns = await api.getColumnsForTable(docId, tableName)
     
