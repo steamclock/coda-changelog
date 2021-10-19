@@ -4,8 +4,8 @@ author: 'Steamclock Software'
 inputs:
   all-commits:
     description: 'commits since last tag'
-  commits: 
-    description: 'list of commits'
+  commit: 
+    description: 'Current commit'
   table:
     description: 'name of coda table to write too'
     default: "Unreleased Changes"

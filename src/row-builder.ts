@@ -20,7 +20,7 @@ export function buildRow(columns: Column[], commits: Commit[]) {
         } as Row
         rows.push(row)
     })
-    
+    console.log(`Rows: ${rows}`)
     return {
         rows: rows
     }

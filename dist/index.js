@@ -123,16 +123,20 @@ const rowBuilder = __importStar(__nccwpck_require__(6373));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const commits = JSON.parse(core.getInput('commits'));
-            const token = core.getInput('coda-token');
+            var commitsSinceLastTag = JSON.parse(core.getInput('all-commits'));
+            const commit = JSON.parse(core.getInput('commit'));
+            const tableName = core.getInput('table');
             const docId = core.getInput('doc-id');
-            var columns = yield api.getColumnsForTable(docId, 'Release 2.0');
-            yield api.insertRows(docId, 'Release 2.0', rowBuilder.buildRow(columns, commits[0]));
-            console.log(" WE ARE RUNNING LATEST ");
-            console.log(`List of column ids: ${columns}`);
-            console.log(`List of commits: ${commits}`);
-            console.log(`token: ${token}`);
-            console.log(`docId: ${docId}`);
+            var columns = yield api.getColumnsForTable(docId, tableName);
+            if (commitsSinceLastTag === undefined || commitsSinceLastTag.length == 0) {
+                yield api.insertRows(docId, tableName, rowBuilder.buildRow(columns, [commit]));
+            }
+            else {
+                commitsSinceLastTag.push(commit);
+                yield api.insertRows(docId, tableName, rowBuilder.buildRow(columns, commitsSinceLastTag));
+            }
+            console.log(`Commits since last tag: ${commitsSinceLastTag}`);
+            console.log(`Posting commit : ${commit}`);
             core.setOutput('time', new Date().toTimeString());
         }
         catch (error) {
@@ -154,21 +158,26 @@ run();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.buildRow = void 0;
 const moment = __nccwpck_require__(9623);
-function buildRow(columns, commit) {
-    var cells = [];
-    for (var key in columns) {
-        var column = columns[key];
-        var cell = {
-            column: column.id,
-            value: valueForColumn(column.name, commit)
+function buildRow(columns, commits) {
+    var rows = [];
+    commits.forEach((commit) => {
+        var cells = [];
+        for (var key in columns) {
+            var column = columns[key];
+            var cell = {
+                column: column.id,
+                value: valueForColumn(column.name, commit)
+            };
+            cells.push(cell);
+        }
+        var row = {
+            cells: cells
         };
-        cells.push(cell);
-    }
-    var row = {
-        cells: cells
-    };
+        rows.push(row);
+    });
+    console.log(`Rows: ${rows}`);
     return {
-        rows: [row]
+        rows: rows
     };
 }
 exports.buildRow = buildRow;
@@ -185,30 +194,6 @@ function valueForColumn(name, commit) {
     }
     return "";
 }
-// var secondTableRequestData = {
-//     "rows": [
-//         {
-//             "cells": [
-//                 {
-//                     "column": "c-bqKCVIJKVR",
-//                     "value": "Bug fixes"
-//                 },
-//                 {
-//                     "column": "c-EKPQx6MCgy",
-//                     "value": "AZielinsky"
-//                 },
-//                 {
-//                     "column": "c-8bhw8a6CFr",
-//                     "value": "www.github.com"
-//                 },
-//                 {
-//                     "column": "c-DEUVCy9iqS",
-//                     "value": "4/10/2021"
-//                 }
-//             ]
-//         }
-//     ]
-// }
 
 
 /***/ }),
