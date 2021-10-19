@@ -2,10 +2,12 @@ name: 'Coda-Changelog'
 description: 'A Github action that sends your commit information to a Coda document'
 author: 'Steamclock Software'
 inputs:
-  all-commits:
-    description: 'commits since last tag'
-  commits: 
-    description: 'Current commit'
+  fromTag:
+    description: 'tag to indicate when to fetch commits from for initial write to table'
+  token:
+    description: 'github access token'
+  branch:
+    description: 'current branch name'
   table:
     description: 'name of coda table to write too'
     default: "Unreleased Changes"
