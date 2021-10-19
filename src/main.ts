@@ -7,7 +7,7 @@ async function run(): Promise<void> {
   try {
     
     var commitsSinceLastTag = JSON.parse(core.getInput('all-commits')) as Commit[]
-    const commit = JSON.parse(core.getInput('commit')) as Commit
+    const commits = JSON.parse(core.getInput('commits')) as Commit[]
 
     const tableName = core.getInput('table')
     const docId = core.getInput('doc-id')
@@ -15,14 +15,14 @@ async function run(): Promise<void> {
     var columns = await api.getColumnsForTable(docId, tableName)
     
     if (commitsSinceLastTag === undefined || commitsSinceLastTag.length == 0) {
-        await api.insertRows(docId, tableName, rowBuilder.buildRow(columns, [commit]))
+        await api.insertRows(docId, tableName, rowBuilder.buildRow(columns, [commits[0]]))
     } else {
-        commitsSinceLastTag.push(commit)
+        commitsSinceLastTag.push(commits[0])
         await api.insertRows(docId, tableName, rowBuilder.buildRow(columns, commitsSinceLastTag))
     }
  
     console.log(`Commits since last tag: ${commitsSinceLastTag}`)
-    console.log(`Posting commit : ${commit}`)
+    console.log(`Posting commit : ${commits}`)
 
     core.setOutput('time', new Date().toTimeString())
   } catch (error) {

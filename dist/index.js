@@ -124,19 +124,19 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             var commitsSinceLastTag = JSON.parse(core.getInput('all-commits'));
-            const commit = JSON.parse(core.getInput('commit'));
+            const commits = JSON.parse(core.getInput('commits'));
             const tableName = core.getInput('table');
             const docId = core.getInput('doc-id');
             var columns = yield api.getColumnsForTable(docId, tableName);
             if (commitsSinceLastTag === undefined || commitsSinceLastTag.length == 0) {
-                yield api.insertRows(docId, tableName, rowBuilder.buildRow(columns, [commit]));
+                yield api.insertRows(docId, tableName, rowBuilder.buildRow(columns, [commits[0]]));
             }
             else {
-                commitsSinceLastTag.push(commit);
+                commitsSinceLastTag.push(commits[0]);
                 yield api.insertRows(docId, tableName, rowBuilder.buildRow(columns, commitsSinceLastTag));
             }
             console.log(`Commits since last tag: ${commitsSinceLastTag}`);
-            console.log(`Posting commit : ${commit}`);
+            console.log(`Posting commit : ${commits}`);
             core.setOutput('time', new Date().toTimeString());
         }
         catch (error) {

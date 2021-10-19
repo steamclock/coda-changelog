@@ -4,7 +4,7 @@ author: 'Steamclock Software'
 inputs:
   all-commits:
     description: 'commits since last tag'
-  commit: 
+  commits: 
     description: 'Current commit'
   table:
     description: 'name of coda table to write too'
