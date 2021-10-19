@@ -2,15 +2,17 @@ name: 'Coda-Changelog'
 description: 'A Github action that sends your commit information to a Coda document'
 author: 'Steamclock Software'
 inputs:
+  all-commits:
+    description: 'commits since last tag'
   commits: 
     description: 'list of commits'
+  table:
+    description: 'name of coda table to write too'
+    default: "Unreleased Changes"
   doc-id:
     description: 'id of coda document'
   coda-token:
     description: 'Defines the token used to access a specific Coda document'
-  default-table:
-    description: 'Defined the default table to write to'
-    default: "Unreleased Changes"
 runs:
   using: 'node12'
   main: 'dist/index.js'
