@@ -1,20 +1,9 @@
 const axios = require('axios').default;
 import * as core from '@actions/core'
-import { Rows, Column } from './model/table'
+import { Rows, Column } from '../model/table'
 
 axios.defaults.baseURL = "https://coda.io/apis/v1/"
 axios.defaults.headers.common['Authorization'] = `Bearer ${core.getInput('coda-token')}`;
-
-async function getTables(docId: string) {
-    return axios 
-        .get(`docs/${docId}/tables`)
-        .then(async (response: any) => {
-            console.log(response.data.items)
-        })
-        .catch((error: any) => {
-            console.log(error);
-        });
-}
 
 export async function getColumnsForTable(docId: string, tableName: string) {
     return axios 
@@ -24,7 +13,7 @@ export async function getColumnsForTable(docId: string, tableName: string) {
             return columns
         })
         .catch((error: any) => {
-            console.log(error);
+            core.warning(error);
         });
 }
 
@@ -35,6 +24,30 @@ export async function insertRows(docId: string, tableName: string, rows: Rows) {
             console.log(response)
         })
         .catch((error: any) => {
-            console.log(error);
+            core.warning(error);
+        });
+}
+
+export async function getLatestCommitDate(docId: string, tableName: string) {
+    return axios 
+        .get(`docs/${docId}/tables/${tableName}/rows`, { 
+            params: {
+               'useColumnNames': 'true',
+            }
+        })
+        .then(async (response: any) => {
+            var items = response.data.items
+            console.log(items)
+            var dates: string[] = [] 
+            for(const item of items) {
+                const date = item.values.Date
+                dates.push(date)
+            }
+            var latest = dates.sort().pop()
+            console.log(latest)
+            return latest
+        })
+        .catch((error: any) => {
+            core.warning(error);
         });
 }

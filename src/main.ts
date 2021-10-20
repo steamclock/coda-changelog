@@ -1,67 +1,65 @@
 import * as core from '@actions/core'
-import * as api from './coda'
+import * as api from './api/coda'
 import * as rowBuilder from './row-builder'
 import * as github from '@actions/github'
+import * as commits from './api/commits'
 import { Commit } from './model/commit'
-import * as commits from './commits'
 
 async function run(): Promise<void> {
   try {
-    
+    core.startGroup('📘 Reading input values!')
     const token = core.getInput('token')
     const owner = core.getInput('owner') || github.context.repo.owner
     const repo = core.getInput('repo') || github.context.repo.repo
-
-    console.log(`owner: ${owner}`)
-    console.log(`repo: ${repo}`)
-
+    const commitEvent = JSON.parse(core.getInput('commits')) as Commit[]
     const branch = core.getInput('branch')
     const fromTag = core.getInput('fromTag')
-
-    console.log(`fromTag: ${fromTag}`)
-    console.log(`branch: ${branch}`)
-    
     const tableName = core.getInput('table')
     const docId = core.getInput('doc-id')
 
+    console.log(`fromTag: ${fromTag}`)
+    console.log(`branch: ${branch}`)
+    console.log(`owner: ${owner}`)
+    console.log(`repo: ${repo}`)
     console.log(`tableName: ${tableName}`)
     console.log(`docId: ${docId}`)
+    core.endGroup()
 
-    //TODO: if fromTag is empty or Coda table has rows skip this step
-    const commitSinceTag = await commits.getCommitHistory(token, owner, repo, fromTag, branch)
+    core.startGroup('🎣 Fetching Commits...')
+    //Check latest commit written to table
+    const lastCommitDate = await api.getLatestCommitDate(docId, tableName)
+    console.log(`lastCommitDate: ${lastCommitDate}`)
+
+    var commitsToUpload: Commit[]
+    //If nil the table is empty and we want to fetch all commits since tag
+    if(lastCommitDate == undefined) {
+      console.log(`Fetching Commit History since tag: ${fromTag}`)
+      commitsToUpload = await commits.getCommitHistory(token, owner, repo, fromTag, branch)
+    } else if(fromTag === undefined || fromTag.length == 0) {
+      //If no fromTag just write the single commit event
+      commitsToUpload = commitEvent
+    } else {
+      //If we have a lastCommit date value get all commits since the date 
+      console.log(`Fetching Commit History since date: ${lastCommitDate}`)
+      commitsToUpload = await commits.getCommitsSinceDate(token,owner,repo, lastCommitDate)
+    }
+    console.log(`# of commits found: ${commitsToUpload.length}`)
+    core.endGroup()
 
     var columns = await api.getColumnsForTable(docId, tableName)
-    
-    if (commitSinceTag === undefined || commitSinceTag.length == 0) {
-      console.log("No commits found")
+    core.startGroup('💪 Writing to Coda!')
+    if (commitsToUpload === undefined || commitsToUpload.length == 0) {
+      core.warning('No Commits found / uploaded')
     } else {
-      await api.insertRows(docId, tableName, rowBuilder.buildRow(columns, commitSinceTag))
+      await api.insertRows(docId, tableName, rowBuilder.buildRow(columns, commitsToUpload))
     }
+    core.endGroup()
     
-    console.log(`Commits since last tag: ${commitSinceTag}`)
-    //console.log(`Posting commit : ${commits}`)
-
+  
     core.setOutput('time', new Date().toTimeString())
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }
 }
-// var commitsSinceLastTag = JSON.parse(core.getInput('all-commits')) as Commit[]
-//     const commits = JSON.parse(core.getInput('commits')) as Commit[]
-
-//     const tableName = core.getInput('table')
-//     const docId = core.getInput('doc-id')
-
-//     var columns = await api.getColumnsForTable(docId, tableName)
-    
-//     if (commitsSinceLastTag === undefined || commitsSinceLastTag.length == 0) {
-//         await api.insertRows(docId, tableName, rowBuilder.buildRow(columns, [commits[0]]))
-//     } else {
-//         commitsSinceLastTag.push(commits[0])
-//         await api.insertRows(docId, tableName, rowBuilder.buildRow(columns, commitsSinceLastTag))
-//     }
- 
-//     console.log(`Commits since last tag: ${commitsSinceLastTag}`)
-//     console.log(`Posting commit : ${commits}`)
 
 run()

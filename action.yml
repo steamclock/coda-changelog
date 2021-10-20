@@ -2,6 +2,8 @@ name: 'Coda-Changelog'
 description: 'A Github action that sends your commit information to a Coda document'
 author: 'Steamclock Software'
 inputs:
+  commits:
+    description: 'commits from github event used in case no from tag provided for initial write to table'
   fromTag:
     description: 'tag to indicate when to fetch commits from for initial write to table'
   token:
