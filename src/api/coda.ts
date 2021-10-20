@@ -37,14 +37,12 @@ export async function getLatestCommitDate(docId: string, tableName: string) {
         })
         .then(async (response: any) => {
             var items = response.data.items
-            console.log(items)
             var dates: string[] = [] 
             for(const item of items) {
                 const date = item.values.Date
                 dates.push(date)
             }
             var latest = dates.sort().pop()
-            console.log(latest)
             return latest
         })
         .catch((error: any) => {

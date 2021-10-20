@@ -77,14 +77,12 @@ function getLatestCommitDate(docId, tableName) {
         })
             .then((response) => __awaiter(this, void 0, void 0, function* () {
             var items = response.data.items;
-            console.log(items);
             var dates = [];
             for (const item of items) {
                 const date = item.values.Date;
                 dates.push(date);
             }
             var latest = dates.sort().pop();
-            console.log(latest);
             return latest;
         }))
             .catch((error) => {
@@ -161,10 +159,8 @@ function getCommitHistory(token, owner, repo, base, head) {
                         url: c.commit.url
                     };
                 });
-                for (const c of commits) {
-                    console.log(c);
-                }
-                resolve(commits);
+                const sortedCommits = sortCommits(commits);
+                resolve(sortedCommits);
             }).catch(error => {
                 core.warning("Failed to retrieve commits", error);
                 reject(error);
@@ -195,10 +191,8 @@ function getCommitsSinceDate(token, owner, repo, date) {
                         url: c.commit.url
                     };
                 });
-                for (const c of commits) {
-                    console.log(c);
-                }
-                resolve(commits);
+                const sortedCommits = sortCommits(commits);
+                resolve(sortedCommits);
             }).catch(error => {
                 core.warning("Failed to retrieve commits", error);
                 reject(error);

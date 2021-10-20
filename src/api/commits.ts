@@ -29,10 +29,8 @@ export async function getCommitHistory(
                     url: c.commit.url
                 } as Commit
             })
-                for (const c of commits) {
-                    console.log(c)
-                }
-                resolve(commits)
+            const sortedCommits = sortCommits(commits)
+            resolve(sortedCommits)
             }).catch(error => {
                 core.warning("Failed to retrieve commits", error);
                 reject(error)
@@ -64,10 +62,8 @@ export async function getCommitsSinceDate(
                     url: c.commit.url
                 } as Commit
             })
-            for (const c of commits) {
-                console.log(c)
-            }
-            resolve(commits)
+            const sortedCommits = sortCommits(commits)
+            resolve(sortedCommits)
         }).catch(error => {
             core.warning("Failed to retrieve commits", error);
             reject(error)
