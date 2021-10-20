@@ -51,12 +51,12 @@ async function run(): Promise<void> {
     console.log(`# of commits found: ${commitsToUpload.length}`)
     core.endGroup()
 
-    var columns = await api.getColumnsForTable(docId, tableName)
     core.startGroup('💪 Writing to Coda!')
     if (commitsToUpload === undefined || commitsToUpload.length == 0) {
       core.warning('No Commits found / uploaded')
     } else {
-      await api.insertRows(docId, tableName, rowBuilder.buildRow(columns, commitsToUpload))
+      const columns = await api.getColumnsForTable(docId, tableName)
+      await api.insertRows(docId, tableName, rowBuilder.buildRows(columns, commitsToUpload))
     }
     core.endGroup()
     

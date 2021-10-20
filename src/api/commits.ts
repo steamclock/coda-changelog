@@ -17,17 +17,8 @@ export async function getCommitHistory(
             base: base,
             head: head,
         }).then((response) => {
-            const commits = response.data.commits.map(c => {
-                return {
-                    author: {
-                        email: c.commit.author?.email ,
-                        name: c.commit.author?.name,
-                        username: c.author?.login
-                    },
-                    message: c.commit.message,
-                    timestamp: c.commit.author?.date,
-                    url: c.commit.url
-                } as Commit
+            const commits = response.data.commits.map(item => {
+                return dataItemToCommit(item)
             })
             const sortedCommits = sortCommits(commits)
             resolve(sortedCommits)
@@ -50,37 +41,33 @@ export async function getCommitsSinceDate(
             repo: repo,
             since: date
         }).then((response) => {
-            const commits = response.data.map(c => {
-                return {
-                    author: {
-                        email: c.commit.author?.email ,
-                        name: c.commit.author?.name,
-                        username: c.author?.login
-                    },
-                    message: c.commit.message,
-                    timestamp: c.commit.author?.date,
-                    url: c.commit.url
-                } as Commit
+            const commits = response.data.map(item => {
+                return dataItemToCommit(item)
             })
             const sortedCommits = sortCommits(commits)
             resolve(sortedCommits)
         }).catch(error => {
+            console.log(error)
             core.warning("Failed to retrieve commits", error);
             reject(error)
         });
     })
 }
-  
+
+function dataItemToCommit(item: any) {
+    return {
+        author: {
+            email: item.commit.author?.email ,
+            name: item.commit.author?.name,
+            username: item.author?.login
+        },
+        message: item.commit.message,
+        timestamp: item.commit.author?.date,
+        url: item.commit.url
+    } as Commit
+}
+
 function sortCommits(commits: Commit[]): Commit[] {
-    return commits.sort((a, b) => {
-        var firstDate = moment(a.timestamp)
-        var secondDate = moment(b.timestamp)
-        if (firstDate.isBefore(secondDate)) {
-            return -1
-        } else if (secondDate.isBefore(firstDate)) {
-            return 1
-        }
-        return 0
-    })
+    return commits.sort((a, b) => moment(a.timestamp).unix() - moment(b.timestamp).unix())
 }
   

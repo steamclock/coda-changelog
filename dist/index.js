@@ -45,8 +45,7 @@ function getColumnsForTable(docId, tableName) {
         return axios
             .get(`docs/${docId}/tables/${tableName}/columns`)
             .then((response) => __awaiter(this, void 0, void 0, function* () {
-            var columns = response.data.items;
-            return columns;
+            return response.data.items;
         }))
             .catch((error) => {
             core.warning(error);
@@ -58,9 +57,6 @@ function insertRows(docId, tableName, rows) {
     return __awaiter(this, void 0, void 0, function* () {
         return axios
             .post(`docs/${docId}/tables/${tableName}/rows`, rows)
-            .then((response) => __awaiter(this, void 0, void 0, function* () {
-            console.log(response);
-        }))
             .catch((error) => {
             core.warning(error);
         });
@@ -76,14 +72,10 @@ function getLatestCommitDate(docId, tableName) {
             }
         })
             .then((response) => __awaiter(this, void 0, void 0, function* () {
-            var items = response.data.items;
-            var dates = [];
-            for (const item of items) {
-                const date = item.values.Date;
-                dates.push(date);
-            }
-            var latest = dates.sort().pop();
-            return latest;
+            var dates = response.data.items.map((item) => {
+                return item.values.Date;
+            });
+            return dates.sort().pop();
         }))
             .catch((error) => {
             core.warning(error);
@@ -146,18 +138,8 @@ function getCommitHistory(token, owner, repo, base, head) {
                 base: base,
                 head: head,
             }).then((response) => {
-                const commits = response.data.commits.map(c => {
-                    var _a, _b, _c, _d;
-                    return {
-                        author: {
-                            email: (_a = c.commit.author) === null || _a === void 0 ? void 0 : _a.email,
-                            name: (_b = c.commit.author) === null || _b === void 0 ? void 0 : _b.name,
-                            username: (_c = c.author) === null || _c === void 0 ? void 0 : _c.login
-                        },
-                        message: c.commit.message,
-                        timestamp: (_d = c.commit.author) === null || _d === void 0 ? void 0 : _d.date,
-                        url: c.commit.url
-                    };
+                const commits = response.data.commits.map(item => {
+                    return dataItemToCommit(item);
                 });
                 const sortedCommits = sortCommits(commits);
                 resolve(sortedCommits);
@@ -178,22 +160,13 @@ function getCommitsSinceDate(token, owner, repo, date) {
                 repo: repo,
                 since: date
             }).then((response) => {
-                const commits = response.data.map(c => {
-                    var _a, _b, _c, _d;
-                    return {
-                        author: {
-                            email: (_a = c.commit.author) === null || _a === void 0 ? void 0 : _a.email,
-                            name: (_b = c.commit.author) === null || _b === void 0 ? void 0 : _b.name,
-                            username: (_c = c.author) === null || _c === void 0 ? void 0 : _c.login
-                        },
-                        message: c.commit.message,
-                        timestamp: (_d = c.commit.author) === null || _d === void 0 ? void 0 : _d.date,
-                        url: c.commit.url
-                    };
+                const commits = response.data.map(item => {
+                    return dataItemToCommit(item);
                 });
                 const sortedCommits = sortCommits(commits);
                 resolve(sortedCommits);
             }).catch(error => {
+                console.log(error);
                 core.warning("Failed to retrieve commits", error);
                 reject(error);
             });
@@ -201,18 +174,21 @@ function getCommitsSinceDate(token, owner, repo, date) {
     });
 }
 exports.getCommitsSinceDate = getCommitsSinceDate;
+function dataItemToCommit(item) {
+    var _a, _b, _c, _d;
+    return {
+        author: {
+            email: (_a = item.commit.author) === null || _a === void 0 ? void 0 : _a.email,
+            name: (_b = item.commit.author) === null || _b === void 0 ? void 0 : _b.name,
+            username: (_c = item.author) === null || _c === void 0 ? void 0 : _c.login
+        },
+        message: item.commit.message,
+        timestamp: (_d = item.commit.author) === null || _d === void 0 ? void 0 : _d.date,
+        url: item.commit.url
+    };
+}
 function sortCommits(commits) {
-    return commits.sort((a, b) => {
-        var firstDate = (0, moment_1.default)(a.timestamp);
-        var secondDate = (0, moment_1.default)(b.timestamp);
-        if (firstDate.isBefore(secondDate)) {
-            return -1;
-        }
-        else if (secondDate.isBefore(firstDate)) {
-            return 1;
-        }
-        return 0;
-    });
+    return commits.sort((a, b) => (0, moment_1.default)(a.timestamp).unix() - (0, moment_1.default)(b.timestamp).unix());
 }
 
 
@@ -300,13 +276,13 @@ function run() {
             }
             console.log(`# of commits found: ${commitsToUpload.length}`);
             core.endGroup();
-            var columns = yield api.getColumnsForTable(docId, tableName);
             core.startGroup('💪 Writing to Coda!');
             if (commitsToUpload === undefined || commitsToUpload.length == 0) {
                 core.warning('No Commits found / uploaded');
             }
             else {
-                yield api.insertRows(docId, tableName, rowBuilder.buildRow(columns, commitsToUpload));
+                const columns = yield api.getColumnsForTable(docId, tableName);
+                yield api.insertRows(docId, tableName, rowBuilder.buildRows(columns, commitsToUpload));
             }
             core.endGroup();
             core.setOutput('time', new Date().toTimeString());
@@ -323,28 +299,22 @@ run();
 /***/ }),
 
 /***/ 6373:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.buildRow = void 0;
-const moment = __nccwpck_require__(9623);
-function buildRow(columns, commits) {
+exports.buildRows = void 0;
+function buildRows(columns, commits) {
     var rows = [];
     commits.forEach((commit) => {
-        var cells = [];
-        for (var key in columns) {
-            var column = columns[key];
-            var cell = {
+        const cells = columns.map(column => {
+            return {
                 column: column.id,
                 value: valueForColumn(column.name, commit)
             };
-            cells.push(cell);
-        }
-        var row = {
-            cells: cells
-        };
+        });
+        const row = { cells: cells };
         rows.push(row);
     });
     console.log(`Rows: ${rows}`);
@@ -352,7 +322,7 @@ function buildRow(columns, commits) {
         rows: rows
     };
 }
-exports.buildRow = buildRow;
+exports.buildRows = buildRows;
 function valueForColumn(name, commit) {
     switch (name) {
         case "Commit":
@@ -362,7 +332,7 @@ function valueForColumn(name, commit) {
         case "Url":
             return commit.url;
         case "Date":
-            return moment(commit.timestamp).format("YYYY-MM-DD HH:mm:ss");
+            return commit.timestamp;
     }
     return "";
 }
