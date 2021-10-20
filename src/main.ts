@@ -30,19 +30,24 @@ async function run(): Promise<void> {
     const lastCommitDate = await api.getLatestCommitDate(docId, tableName)
     console.log(`lastCommitDate: ${lastCommitDate}`)
 
-    var commitsToUpload: Commit[]
+    var commitsToUpload: Commit[] = commitEvent
     //If nil the table is empty and we want to fetch all commits since tag
     if(lastCommitDate == undefined) {
       console.log(`Fetching Commit History since tag: ${fromTag}`)
-      commitsToUpload = await commits.getCommitHistory(token, owner, repo, fromTag, branch)
-    } else if(fromTag === undefined || fromTag.length == 0) {
-      //If no fromTag just write the single commit event
-      commitsToUpload = commitEvent
+      const commitsSinceTag = await commits.getCommitHistory(token, owner, repo, fromTag, branch)
+      if(commitsSinceTag.length > 0) {
+        commitsToUpload = commitsSinceTag
+      }
     } else {
       //If we have a lastCommit date value get all commits since the date 
       console.log(`Fetching Commit History since date: ${lastCommitDate}`)
-      commitsToUpload = await commits.getCommitsSinceDate(token,owner,repo, lastCommitDate)
+      const commitsSinceDate = await commits.getCommitsSinceDate(token,owner,repo, lastCommitDate)
+      console.log(`# of commits found since date: ${commitsSinceDate.length}`)
+      if(commitsSinceDate.length > 0) {
+        commitsToUpload = commitsSinceDate
+      }
     }
+
     console.log(`# of commits found: ${commitsToUpload.length}`)
     core.endGroup()
 
