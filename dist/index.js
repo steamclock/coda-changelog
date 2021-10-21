@@ -141,7 +141,8 @@ function getCommitHistory(token, owner, repo, base, head) {
                 const commits = response.data.commits.map(item => {
                     return dataItemToCommit(item);
                 });
-                const sortedCommits = sortCommits(commits);
+                // Removing first element to not include tagged commit
+                const sortedCommits = sortCommits(commits).slice(1);
                 resolve(sortedCommits);
             }).catch(error => {
                 core.warning("Failed to retrieve commits", error);

@@ -3,20 +3,20 @@ description: 'A Github action that sends your commit information to a Coda docum
 author: 'Steamclock Software'
 inputs:
   commits:
-    description: 'commits from github event used in case no from tag provided for initial write to table'
+    description: 'Github event commits'
   fromTag:
-    description: 'tag to indicate when to fetch commits from for initial write to table'
+    description: 'Tag to indicate when to fetch commits from for initial write to table'
   token:
-    description: 'github access token'
+    description: 'Github access token'
   branch:
-    description: 'current branch name'
+    description: 'Current branch name'
   table:
-    description: 'name of coda table to write too'
+    description: 'Name of coda table'
     default: "Unreleased Changes"
   doc-id:
-    description: 'id of coda document'
+    description: 'Coda document id'
   coda-token:
-    description: 'Defines the token used to access a specific Coda document'
+    description: 'Coda API Token'
 runs:
   using: 'node12'
   main: 'dist/index.js'
