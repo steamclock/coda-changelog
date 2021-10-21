@@ -1,105 +1,69 @@
-<p align="center">
-  <a href="https://github.com/actions/typescript-action/actions"><img alt="typescript-action status" src="https://github.com/actions/typescript-action/workflows/build-test/badge.svg"></a>
-</p>
 
-# Create a JavaScript Action using TypeScript
+# Coda Changelog
 
-Use this template to bootstrap the creation of a TypeScript action.:rocket:
+This Github Action allows you to maintain your projects changelog in a [Coda](https://www.google.com/aclk?sa=l&ai=DChcSEwiRy-HBltrzAhVKA4sKHX43Dm0YABABGgJlZg&ae=2&ei=q6pwYZ2vGPCC9u8Pq9qakAs&sig=AOD64_2ORAlxxcit5wZg8QAjGP10veY56A&q&nis=1&sqi=2&adurl&ved=2ahUKEwjdsNfBltrzAhVwgf0HHSutBrIQ0Qx6BAgCEAE) document. 🚀
 
-This template includes compilation support, tests, a validation workflow, publishing, and versioning guidance.  
+## Set up Coda document
+Due to current limitations of the Coda API, you need to manually create tables in your Coda doc to write too. 
 
-If you are new, there's also a simpler introduction.  See the [Hello World JavaScript Action](https://github.com/actions/hello-world-javascript-action)
+#### Tables should contain the following Columns: 
+### **Commit** | **Author** | **Url** | **Date**
 
-## Create an action from this template
+_Note: The action relies on your table columns being named correctly._
 
-Click the `Use this Template` and provide the new repo details for your action
+## Setup workflow 
 
-## Code in Main
-
-> First, you'll need to have a reasonably modern version of `node` handy. This won't work with versions older than 9, for instance.
-
-Install the dependencies  
-```bash
-$ npm install
-```
-
-Build the typescript and package it for distribution
-```bash
-$ npm run build && npm run package
-```
-
-Run the tests :heavy_check_mark:  
-```bash
-$ npm test
-
- PASS  ./index.test.js
-  ✓ throws invalid number (3ms)
-  ✓ wait 500 ms (504ms)
-  ✓ test runs (95ms)
-
-...
-```
-
-## Change action.yml
-
-The action.yml defines the inputs and output for your action.
-
-Update the action.yml with your name, description, inputs and outputs for your action.
-
-See the [documentation](https://help.github.com/en/articles/metadata-syntax-for-github-actions)
-
-## Change the Code
-
-Most toolkit and CI/CD operations involve async operations so the action is run in an async function.
-
-```javascript
-import * as core from '@actions/core';
-...
-
-async function run() {
-  try { 
-      ...
-  } 
-  catch (error) {
-    core.setFailed(error.message);
-  }
-}
-
-run()
-```
-
-See the [toolkit documentation](https://github.com/actions/toolkit/blob/master/README.md#packages) for the various packages.
-
-## Publish to a distribution branch
-
-Actions are run from GitHub repos so we will checkin the packed dist folder. 
-
-Then run [ncc](https://github.com/zeit/ncc) and push the results:
-```bash
-$ npm run package
-$ git add dist
-$ git commit -a -m "prod dependencies"
-$ git push origin releases/v1
-```
-
-Note: We recommend using the `--license` option for ncc, which will create a license file for all of the production node modules used in your project.
-
-Your action is now published! :rocket: 
-
-See the [versioning documentation](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md)
-
-## Validate
-
-You can now validate the action by referencing `./` in a workflow in your repo (see [test.yml](.github/workflows/test.yml))
-
+Create the following steps for the action in your workflow 
 ```yaml
-uses: ./
-with:
-  milliseconds: 1000
+- name: Extract branch name
+  run: echo "::set-output name=branch::$(echo ${GITHUB_REF#refs/heads/})"
+  shell: bash
+  id: extract_branch
+
+- name: Update Changelog  
+  id: update-changelog
+  uses: steamclock/coda-changelog@v1
+  with:
+    fromTag: '<last release tag>'
+    table: '<name of Coda table>' 
+    commits: ${{ toJSON(github.event.commits) }}
+    token: ${{ secrets.PAT }}
+    coda-token: ${{ secrets.CODA_TOKEN }}
+    doc-id: '<your doc id>'
+    branch: ${{ steps.extract_branch.outputs.branch }}
+  env:
+   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-See the [actions tab](https://github.com/actions/typescript-action/actions) for runs of this action! :rocket:
+Action Inputs
+```yaml
+  commits:
+    description: 'Github event commits'
+  fromTag:
+    description: 'Tag to indicate when to fetch commits from for initial write to table'
+  token:
+    description: 'Github access token'
+  branch:
+    description: 'Current branch name'
+  table:
+    description: 'Name of your Coda table to write too'
+    default: "Unreleased Changes"
+  doc-id:
+    description: 'Id of your Coda document'
+  coda-token:
+    description: 'Coda API Token'
+```
 
-## Usage:
+You can get your Coda doc id here: [Link to Coda doc id extractor](https://coda.io/developers/apis/v1#section/Using-the-API/Resource-IDs-and-Links)
 
-After testing you can [create a v1 tag](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md) to reference the stable and latest V1 action
+### Add Secrets
+
+Add a secret to your repo for your Coda API Token named CODA_TOKEN
+
+Add a secret to your repo for your Personal Access Token named PAT
+
+## Output
+
+![Screen Shot 2021-10-20 at 1 14 52 PM](https://user-images.githubusercontent.com/17748596/138318772-32217a77-6c31-4abc-a64d-fd6b19d6f466.png)
+
+
