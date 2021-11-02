@@ -164,7 +164,7 @@ function getCommitsSinceDate(token, owner, repo, date) {
                 const commits = response.data.map(item => {
                     return dataItemToCommit(item);
                 });
-                const sortedCommits = sortCommits(commits);
+                const sortedCommits = sortCommits(commits).slice(1);
                 resolve(sortedCommits);
             }).catch(error => {
                 console.log(error);

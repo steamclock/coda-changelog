@@ -45,7 +45,7 @@ export async function getCommitsSinceDate(
             const commits = response.data.map(item => {
                 return dataItemToCommit(item)
             })
-            const sortedCommits = sortCommits(commits)
+            const sortedCommits = sortCommits(commits).slice(1)
             resolve(sortedCommits)
         }).catch(error => {
             console.log(error)
@@ -71,4 +71,3 @@ function dataItemToCommit(item: any) {
 function sortCommits(commits: Commit[]): Commit[] {
     return commits.sort((a, b) => moment(a.timestamp).unix() - moment(b.timestamp).unix())
 }
-  
