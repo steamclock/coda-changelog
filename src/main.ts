@@ -35,7 +35,7 @@ async function run(): Promise<void> {
     if(lastCommitDate == undefined) {
       console.log(`Fetching Commit History since tag: ${fromTag}`)
       const commitsSinceTag = await commits.getCommitHistory(token, owner, repo, fromTag, branch)
-      if(commitsSinceTag.length > 0) {
+      if(commitsSinceTag != undefined && commitsSinceTag.length > 0) {
         commitsToUpload = commitsSinceTag
       }
     } else {
@@ -43,7 +43,7 @@ async function run(): Promise<void> {
       console.log(`Fetching Commit History since date: ${lastCommitDate}`)
       const commitsSinceDate = await commits.getCommitsSinceDate(token,owner,repo, lastCommitDate)
       console.log(`# of commits found since date: ${commitsSinceDate.length}`)
-      if(commitsSinceDate.length > 0) {
+      if(commitsSinceDate != undefined && commitsSinceDate.length > 0) {
         commitsToUpload = commitsSinceDate
       }
     }

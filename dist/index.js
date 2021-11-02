@@ -56,7 +56,12 @@ exports.getColumnsForTable = getColumnsForTable;
 function insertRows(docId, tableName, rows) {
     return __awaiter(this, void 0, void 0, function* () {
         return axios
-            .post(`docs/${docId}/tables/${tableName}/rows`, rows)
+            .post(`docs/${docId}/tables/${tableName}/rows`, {
+            rows,
+            "keyColumns": [
+                "Url"
+            ]
+        })
             .catch((error) => {
             core.warning(error);
         });
@@ -262,7 +267,7 @@ function run() {
             if (lastCommitDate == undefined) {
                 console.log(`Fetching Commit History since tag: ${fromTag}`);
                 const commitsSinceTag = yield commits.getCommitHistory(token, owner, repo, fromTag, branch);
-                if (commitsSinceTag.length > 0) {
+                if (commitsSinceTag != undefined && commitsSinceTag.length > 0) {
                     commitsToUpload = commitsSinceTag;
                 }
             }
@@ -271,7 +276,7 @@ function run() {
                 console.log(`Fetching Commit History since date: ${lastCommitDate}`);
                 const commitsSinceDate = yield commits.getCommitsSinceDate(token, owner, repo, lastCommitDate);
                 console.log(`# of commits found since date: ${commitsSinceDate.length}`);
-                if (commitsSinceDate.length > 0) {
+                if (commitsSinceDate != undefined && commitsSinceDate.length > 0) {
                     commitsToUpload = commitsSinceDate;
                 }
             }
@@ -307,21 +312,15 @@ run();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.buildRows = void 0;
 function buildRows(columns, commits) {
-    var rows = [];
-    commits.forEach((commit) => {
+    return commits.map(commit => {
         const cells = columns.map(column => {
             return {
                 column: column.id,
                 value: valueForColumn(column.name, commit)
             };
         });
-        const row = { cells: cells };
-        rows.push(row);
+        return { cells: cells };
     });
-    console.log(`Rows: ${rows}`);
-    return {
-        rows: rows
-    };
 }
 exports.buildRows = buildRows;
 function valueForColumn(name, commit) {

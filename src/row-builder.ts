@@ -2,22 +2,15 @@ import { Commit } from './model/commit'
 import { Row, Column, TableCell } from './model/table'
 
 export function buildRows(columns: Column[], commits: Commit[]) {
-    
-    var rows: Row[] = []
-    commits.forEach((commit) => {
+    return commits.map(commit => {
         const cells = columns.map(column => {
             return {
                 column: column.id,
                 value: valueForColumn(column.name, commit)
             } as TableCell
         })
-        const row = { cells: cells } as Row
-        rows.push(row)
+        return { cells: cells } as Row
     })
-    console.log(`Rows: ${rows}`)
-    return {
-        rows: rows
-    }
 }
 
 function valueForColumn(name: string, commit: Commit): string {

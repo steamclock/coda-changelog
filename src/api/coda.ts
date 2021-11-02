@@ -1,6 +1,6 @@
 const axios = require('axios').default;
 import * as core from '@actions/core'
-import { Rows, Column } from '../model/table'
+import { Row, Column } from '../model/table'
 
 axios.defaults.baseURL = "https://coda.io/apis/v1/"
 axios.defaults.headers.common['Authorization'] = `Bearer ${core.getInput('coda-token')}`;
@@ -16,9 +16,14 @@ export async function getColumnsForTable(docId: string, tableName: string) {
         });
 }
 
-export async function insertRows(docId: string, tableName: string, rows: Rows) {
+export async function insertRows(docId: string, tableName: string, rows: Row[]) {
     return axios 
-        .post(`docs/${docId}/tables/${tableName}/rows`, rows)
+        .post(`docs/${docId}/tables/${tableName}/rows`, {
+            rows,
+            "keyColumns": [
+                "Url"
+            ]
+        })
         .catch((error: any) => {
             core.warning(error);
         });

@@ -10,10 +10,6 @@ export interface Row {
     cells: [TableCell]
 }
 
-export interface Rows {
-    rows: Row[]
-}
-
 export interface TableCell {
     column: string //Column Id
     value: string
