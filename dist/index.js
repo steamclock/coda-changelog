@@ -36,9 +36,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getLatestCommitDate = exports.insertRows = exports.getColumnsForTable = void 0;
-const axios = __nccwpck_require__(6545).default;
+/* eslint-disable import/no-commonjs */
+/* eslint-disable github/no-then */
 const core = __importStar(__nccwpck_require__(2186));
-axios.defaults.baseURL = "https://coda.io/apis/v1/";
+const axios = __nccwpck_require__(6545).default;
+axios.defaults.baseURL = 'https://coda.io/apis/v1/';
 axios.defaults.headers.common['Authorization'] = `Bearer ${core.getInput('coda-token')}`;
 function getColumnsForTable(docId, tableName) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -58,9 +60,7 @@ function insertRows(docId, tableName, rows) {
         return axios
             .post(`docs/${docId}/tables/${tableName}/rows`, {
             rows,
-            "keyColumns": [
-                "Url"
-            ]
+            keyColumns: ['Url']
         })
             .catch((error) => {
             core.warning(error);
@@ -73,11 +73,11 @@ function getLatestCommitDate(docId, tableName) {
         return axios
             .get(`docs/${docId}/tables/${tableName}/rows`, {
             params: {
-                'useColumnNames': 'true',
+                useColumnNames: 'true'
             }
         })
             .then((response) => __awaiter(this, void 0, void 0, function* () {
-            var dates = response.data.items.map((item) => {
+            const dates = response.data.items.map((item) => {
                 return item.values.Date;
             });
             return dates.sort().pop();
@@ -130,6 +130,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getCommitsSinceDate = exports.getCommitHistory = void 0;
+/* eslint-disable github/no-then */
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const moment_1 = __importDefault(__nccwpck_require__(9623));
@@ -137,20 +138,23 @@ function getCommitHistory(token, owner, repo, base, head) {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
             const octokit = github.getOctokit(token);
-            yield octokit.rest.repos.compareCommits({
-                owner: owner,
-                repo: repo,
-                base: base,
-                head: head,
-            }).then((response) => {
+            yield octokit.rest.repos
+                .compareCommits({
+                owner,
+                repo,
+                base,
+                head
+            })
+                .then(response => {
                 const commits = response.data.commits.map(item => {
                     return dataItemToCommit(item);
                 });
                 // Removing first element to not include tagged commit
                 const sortedCommits = sortCommits(commits).slice(1);
                 resolve(sortedCommits);
-            }).catch(error => {
-                core.warning("Failed to retrieve commits", error);
+            })
+                .catch(error => {
+                core.warning('Failed to retrieve commits', error);
                 reject(error);
             });
         }));
@@ -161,19 +165,21 @@ function getCommitsSinceDate(token, owner, repo, date) {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
             const octokit = github.getOctokit(token);
-            yield octokit.rest.repos.listCommits({
-                owner: owner,
-                repo: repo,
+            yield octokit.rest.repos
+                .listCommits({
+                owner,
+                repo,
                 since: date
-            }).then((response) => {
+            })
+                .then(response => {
                 const commits = response.data.map(item => {
                     return dataItemToCommit(item);
                 });
                 const sortedCommits = sortCommits(commits).slice(1);
                 resolve(sortedCommits);
-            }).catch(error => {
-                console.log(error);
-                core.warning("Failed to retrieve commits", error);
+            })
+                .catch(error => {
+                core.warning('Failed to retrieve commits', error);
                 reject(error);
             });
         }));
@@ -234,6 +240,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+/* eslint-disable sort-imports */
 const core = __importStar(__nccwpck_require__(2186));
 const api = __importStar(__nccwpck_require__(6316));
 const rowBuilder = __importStar(__nccwpck_require__(6373));
@@ -251,39 +258,28 @@ function run() {
             const fromTag = core.getInput('fromTag');
             const tableName = core.getInput('table');
             const docId = core.getInput('doc-id');
-            console.log(`fromTag: ${fromTag}`);
-            console.log(`branch: ${branch}`);
-            console.log(`owner: ${owner}`);
-            console.log(`repo: ${repo}`);
-            console.log(`tableName: ${tableName}`);
-            console.log(`docId: ${docId}`);
             core.endGroup();
             core.startGroup('🎣 Fetching Commits...');
             //Check latest commit written to table
             const lastCommitDate = yield api.getLatestCommitDate(docId, tableName);
-            console.log(`lastCommitDate: ${lastCommitDate}`);
-            var commitsToUpload = commitEvent;
+            let commitsToUpload = commitEvent;
             //If nil the table is empty and we want to fetch all commits since tag
-            if (lastCommitDate == undefined) {
-                console.log(`Fetching Commit History since tag: ${fromTag}`);
+            if (lastCommitDate === undefined) {
                 const commitsSinceTag = yield commits.getCommitHistory(token, owner, repo, fromTag, branch);
-                if (commitsSinceTag != undefined && commitsSinceTag.length > 0) {
+                if (commitsSinceTag !== undefined && commitsSinceTag.length > 0) {
                     commitsToUpload = commitsSinceTag;
                 }
             }
             else {
-                //If we have a lastCommit date value get all commits since the date 
-                console.log(`Fetching Commit History since date: ${lastCommitDate}`);
+                //If we have a lastCommit date value get all commits since the date
                 const commitsSinceDate = yield commits.getCommitsSinceDate(token, owner, repo, lastCommitDate);
-                console.log(`# of commits found since date: ${commitsSinceDate.length}`);
-                if (commitsSinceDate != undefined && commitsSinceDate.length > 0) {
+                if (commitsSinceDate !== undefined && commitsSinceDate.length > 0) {
                     commitsToUpload = commitsSinceDate;
                 }
             }
-            console.log(`# of commits found: ${commitsToUpload.length}`);
             core.endGroup();
             core.startGroup('💪 Writing to Coda!');
-            if (commitsToUpload === undefined || commitsToUpload.length == 0) {
+            if (commitsToUpload === undefined || commitsToUpload.length === 0) {
                 core.warning('No Commits found / uploaded');
             }
             else {
@@ -319,22 +315,22 @@ function buildRows(columns, commits) {
                 value: valueForColumn(column.name, commit)
             };
         });
-        return { cells: cells };
+        return { cells };
     });
 }
 exports.buildRows = buildRows;
 function valueForColumn(name, commit) {
     switch (name) {
-        case "Commit":
+        case 'Commit':
             return commit.message;
-        case "Author":
+        case 'Author':
             return commit.author.username;
-        case "Url":
+        case 'Url':
             return commit.url;
-        case "Date":
+        case 'Date':
             return commit.timestamp;
     }
-    return "";
+    return '';
 }
 
 
