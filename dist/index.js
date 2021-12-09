@@ -36,8 +36,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getLatestCommitDate = exports.insertRows = exports.getColumnsForTable = void 0;
-/* eslint-disable import/no-commonjs */
 /* eslint-disable github/no-then */
+/* eslint-disable import/no-commonjs */
 const core = __importStar(__nccwpck_require__(2186));
 const axios = __nccwpck_require__(6545).default;
 axios.defaults.baseURL = 'https://coda.io/apis/v1/';
@@ -58,10 +58,7 @@ exports.getColumnsForTable = getColumnsForTable;
 function insertRows(docId, tableName, rows) {
     return __awaiter(this, void 0, void 0, function* () {
         return axios
-            .post(`docs/${docId}/tables/${tableName}/rows`, {
-            rows,
-            keyColumns: ['Url']
-        })
+            .post(`docs/${docId}/tables/${tableName}/rows`, rows)
             .catch((error) => {
             core.warning(error);
         });
@@ -194,9 +191,9 @@ function dataItemToCommit(item) {
             name: (_b = item.commit.author) === null || _b === void 0 ? void 0 : _b.name,
             username: (_c = item.author) === null || _c === void 0 ? void 0 : _c.login
         },
-        message: item.commit.message,
+        message: item.commit.message.split('*')[0].trim(),
         timestamp: (_d = item.commit.author) === null || _d === void 0 ? void 0 : _d.date,
-        url: item.commit.url
+        url: item.html_url
     };
 }
 function sortCommits(commits) {
@@ -240,6 +237,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+/* eslint-disable no-console */
 /* eslint-disable sort-imports */
 const core = __importStar(__nccwpck_require__(2186));
 const api = __importStar(__nccwpck_require__(6316));
@@ -262,9 +260,11 @@ function run() {
             core.startGroup('🎣 Fetching Commits...');
             //Check latest commit written to table
             const lastCommitDate = yield api.getLatestCommitDate(docId, tableName);
+            core.info(`lastCommitDate: ${lastCommitDate}`);
             let commitsToUpload = commitEvent;
             //If nil the table is empty and we want to fetch all commits since tag
-            if (lastCommitDate === undefined) {
+            if (!lastCommitDate) {
+                console.log(`Fetching Commit History since tag: ${fromTag}`);
                 const commitsSinceTag = yield commits.getCommitHistory(token, owner, repo, fromTag, branch);
                 if (commitsSinceTag !== undefined && commitsSinceTag.length > 0) {
                     commitsToUpload = commitsSinceTag;
@@ -272,11 +272,14 @@ function run() {
             }
             else {
                 //If we have a lastCommit date value get all commits since the date
+                console.log(`Fetching Commit History since date: ${lastCommitDate}`);
                 const commitsSinceDate = yield commits.getCommitsSinceDate(token, owner, repo, lastCommitDate);
+                console.log(`# of commits found since date: ${commitsSinceDate.length}`);
                 if (commitsSinceDate !== undefined && commitsSinceDate.length > 0) {
                     commitsToUpload = commitsSinceDate;
                 }
             }
+            console.log(`# of commits found: ${commitsToUpload.length}`);
             core.endGroup();
             core.startGroup('💪 Writing to Coda!');
             if (commitsToUpload === undefined || commitsToUpload.length === 0) {
