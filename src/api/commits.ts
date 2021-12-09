@@ -72,7 +72,7 @@ function dataItemToCommit(item: any): Commit {
     },
     message: item.commit.message,
     timestamp: item.commit.author?.date,
-    url: item.commit.url
+    url: item.html_url
   } as Commit
 }
 
