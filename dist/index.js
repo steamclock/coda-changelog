@@ -240,7 +240,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-/* eslint-disable no-console */
 /* eslint-disable sort-imports */
 const core = __importStar(__nccwpck_require__(2186));
 const api = __importStar(__nccwpck_require__(6316));
@@ -259,6 +258,12 @@ function run() {
             const fromTag = core.getInput('fromTag');
             const tableName = core.getInput('table');
             const docId = core.getInput('doc-id');
+            core.info(`fromTag: ${fromTag}`);
+            core.info(`branch: ${branch}`);
+            core.info(`owner: ${owner}`);
+            core.info(`repo: ${repo}`);
+            core.info(`tableName: ${tableName}`);
+            core.info(`docId: ${docId}`);
             core.endGroup();
             core.startGroup('🎣 Fetching Commits...');
             //Check latest commit written to table
@@ -267,7 +272,7 @@ function run() {
             let commitsToUpload = commitEvent;
             //If nil the table is empty and we want to fetch all commits since tag
             if (!lastCommitDate) {
-                console.log(`Fetching Commit History since tag: ${fromTag}`);
+                core.info(`Fetching Commit History since tag: ${fromTag}`);
                 const commitsSinceTag = yield commits.getCommitHistory(token, owner, repo, fromTag, branch);
                 if (commitsSinceTag !== undefined && commitsSinceTag.length > 0) {
                     commitsToUpload = commitsSinceTag;
@@ -275,14 +280,14 @@ function run() {
             }
             else {
                 //If we have a lastCommit date value get all commits since the date
-                console.log(`Fetching Commit History since date: ${lastCommitDate}`);
+                core.info(`Fetching Commit History since date: ${lastCommitDate}`);
                 const commitsSinceDate = yield commits.getCommitsSinceDate(token, owner, repo, lastCommitDate);
-                console.log(`# of commits found since date: ${commitsSinceDate.length}`);
+                core.info(`# of commits found since date: ${commitsSinceDate.length}`);
                 if (commitsSinceDate !== undefined && commitsSinceDate.length > 0) {
                     commitsToUpload = commitsSinceDate;
                 }
             }
-            console.log(`# of commits found: ${commitsToUpload.length}`);
+            core.info(`# of commits found: ${commitsToUpload.length}`);
             core.endGroup();
             core.startGroup('💪 Writing to Coda!');
             if (commitsToUpload === undefined || commitsToUpload.length === 0) {

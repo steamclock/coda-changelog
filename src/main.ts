@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /* eslint-disable sort-imports */
 import * as core from '@actions/core'
 import * as api from './api/coda'
@@ -19,6 +18,13 @@ async function run(): Promise<void> {
     const tableName = core.getInput('table')
     const docId = core.getInput('doc-id')
 
+    core.info(`fromTag: ${fromTag}`)
+    core.info(`branch: ${branch}`)
+    core.info(`owner: ${owner}`)
+    core.info(`repo: ${repo}`)
+    core.info(`tableName: ${tableName}`)
+    core.info(`docId: ${docId}`)
+
     core.endGroup()
 
     core.startGroup('🎣 Fetching Commits...')
@@ -29,7 +35,7 @@ async function run(): Promise<void> {
     let commitsToUpload: Commit[] = commitEvent
     //If nil the table is empty and we want to fetch all commits since tag
     if (!lastCommitDate) {
-      console.log(`Fetching Commit History since tag: ${fromTag}`)
+      core.info(`Fetching Commit History since tag: ${fromTag}`)
       const commitsSinceTag = await commits.getCommitHistory(
         token,
         owner,
@@ -42,19 +48,19 @@ async function run(): Promise<void> {
       }
     } else {
       //If we have a lastCommit date value get all commits since the date
-      console.log(`Fetching Commit History since date: ${lastCommitDate}`)
+      core.info(`Fetching Commit History since date: ${lastCommitDate}`)
       const commitsSinceDate = await commits.getCommitsSinceDate(
         token,
         owner,
         repo,
         lastCommitDate
       )
-      console.log(`# of commits found since date: ${commitsSinceDate.length}`)
+      core.info(`# of commits found since date: ${commitsSinceDate.length}`)
       if (commitsSinceDate !== undefined && commitsSinceDate.length > 0) {
         commitsToUpload = commitsSinceDate
       }
     }
-    console.log(`# of commits found: ${commitsToUpload.length}`)
+    core.info(`# of commits found: ${commitsToUpload.length}`)
     core.endGroup()
 
     core.startGroup('💪 Writing to Coda!')
