@@ -58,7 +58,10 @@ exports.getColumnsForTable = getColumnsForTable;
 function insertRows(docId, tableName, rows) {
     return __awaiter(this, void 0, void 0, function* () {
         return axios
-            .post(`docs/${docId}/tables/${tableName}/rows`, rows)
+            .post(`docs/${docId}/tables/${tableName}/rows`, {
+            rows,
+            keyColumns: ['Url']
+        })
             .catch((error) => {
             core.warning(error);
         });
@@ -318,7 +321,7 @@ function buildRows(columns, commits) {
                 value: valueForColumn(column.name, commit)
             };
         });
-        return { cells };
+        return { cells: cells };
     });
 }
 exports.buildRows = buildRows;

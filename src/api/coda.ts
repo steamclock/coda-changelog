@@ -26,7 +26,10 @@ export async function insertRows(
   rows: Row[]
 ) {
   return axios
-    .post(`docs/${docId}/tables/${tableName}/rows`, rows)
+    .post(`docs/${docId}/tables/${tableName}/rows`, {
+      rows,
+      keyColumns: ['Url']
+    })
     .catch((error: any) => {
       core.warning(error)
     })

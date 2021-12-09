@@ -1,3 +1,4 @@
+/* eslint-disable object-shorthand */
 /* eslint-disable sort-imports */
 import {Commit} from './model/commit'
 import {Column, Row, TableCell} from './model/table'
@@ -10,7 +11,7 @@ export function buildRows(columns: Column[], commits: Commit[]) {
         value: valueForColumn(column.name, commit)
       } as TableCell
     })
-    return {cells} as Row
+    return {cells: cells} as Row
   })
 }
 
