@@ -187,15 +187,15 @@ function getCommitsSinceDate(token, owner, repo, date) {
 }
 exports.getCommitsSinceDate = getCommitsSinceDate;
 function dataItemToCommit(item) {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e, _f;
     return {
         author: {
             email: (_a = item.commit.author) === null || _a === void 0 ? void 0 : _a.email,
             name: (_b = item.commit.author) === null || _b === void 0 ? void 0 : _b.name,
             username: (_c = item.author) === null || _c === void 0 ? void 0 : _c.login
         },
-        message: item.commit.message.split('*')[0].trim(),
-        timestamp: (_d = item.commit.author) === null || _d === void 0 ? void 0 : _d.date,
+        message: (_e = (_d = item.commit.message.split('*').shift()) === null || _d === void 0 ? void 0 : _d.trim()) !== null && _e !== void 0 ? _e : item.commit.message,
+        timestamp: (_f = item.commit.author) === null || _f === void 0 ? void 0 : _f.date,
         url: item.html_url
     };
 }
