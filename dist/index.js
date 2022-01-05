@@ -36,8 +36,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getLatestCommitDate = exports.insertRows = exports.getColumnsForTable = void 0;
-/* eslint-disable import/no-commonjs */
 /* eslint-disable github/no-then */
+/* eslint-disable import/no-commonjs */
 const core = __importStar(__nccwpck_require__(2186));
 const axios = __nccwpck_require__(6545).default;
 axios.defaults.baseURL = 'https://coda.io/apis/v1/';
@@ -187,16 +187,16 @@ function getCommitsSinceDate(token, owner, repo, date) {
 }
 exports.getCommitsSinceDate = getCommitsSinceDate;
 function dataItemToCommit(item) {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e, _f;
     return {
         author: {
             email: (_a = item.commit.author) === null || _a === void 0 ? void 0 : _a.email,
             name: (_b = item.commit.author) === null || _b === void 0 ? void 0 : _b.name,
             username: (_c = item.author) === null || _c === void 0 ? void 0 : _c.login
         },
-        message: item.commit.message,
-        timestamp: (_d = item.commit.author) === null || _d === void 0 ? void 0 : _d.date,
-        url: item.commit.url
+        message: (_e = (_d = item.commit.message.split('*').shift()) === null || _d === void 0 ? void 0 : _d.trim()) !== null && _e !== void 0 ? _e : item.commit.message,
+        timestamp: (_f = item.commit.author) === null || _f === void 0 ? void 0 : _f.date,
+        url: item.html_url
     };
 }
 function sortCommits(commits) {
@@ -258,13 +258,21 @@ function run() {
             const fromTag = core.getInput('fromTag');
             const tableName = core.getInput('table');
             const docId = core.getInput('doc-id');
+            core.info(`fromTag: ${fromTag}`);
+            core.info(`branch: ${branch}`);
+            core.info(`owner: ${owner}`);
+            core.info(`repo: ${repo}`);
+            core.info(`tableName: ${tableName}`);
+            core.info(`docId: ${docId}`);
             core.endGroup();
             core.startGroup('🎣 Fetching Commits...');
             //Check latest commit written to table
             const lastCommitDate = yield api.getLatestCommitDate(docId, tableName);
+            core.info(`lastCommitDate: ${lastCommitDate}`);
             let commitsToUpload = commitEvent;
             //If nil the table is empty and we want to fetch all commits since tag
-            if (lastCommitDate === undefined) {
+            if (!lastCommitDate) {
+                core.info(`Fetching Commit History since tag: ${fromTag}`);
                 const commitsSinceTag = yield commits.getCommitHistory(token, owner, repo, fromTag, branch);
                 if (commitsSinceTag !== undefined && commitsSinceTag.length > 0) {
                     commitsToUpload = commitsSinceTag;
@@ -272,11 +280,14 @@ function run() {
             }
             else {
                 //If we have a lastCommit date value get all commits since the date
+                core.info(`Fetching Commit History since date: ${lastCommitDate}`);
                 const commitsSinceDate = yield commits.getCommitsSinceDate(token, owner, repo, lastCommitDate);
+                core.info(`# of commits found since date: ${commitsSinceDate.length}`);
                 if (commitsSinceDate !== undefined && commitsSinceDate.length > 0) {
                     commitsToUpload = commitsSinceDate;
                 }
             }
+            core.info(`# of commits found: ${commitsToUpload.length}`);
             core.endGroup();
             core.startGroup('💪 Writing to Coda!');
             if (commitsToUpload === undefined || commitsToUpload.length === 0) {
@@ -315,7 +326,7 @@ function buildRows(columns, commits) {
                 value: valueForColumn(column.name, commit)
             };
         });
-        return { cells };
+        return { cells: cells };
     });
 }
 exports.buildRows = buildRows;

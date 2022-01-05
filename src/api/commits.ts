@@ -70,9 +70,10 @@ function dataItemToCommit(item: any): Commit {
       name: item.commit.author?.name,
       username: item.author?.login
     },
-    message: item.commit.message,
+    message:
+      item.commit.message.split('*').shift()?.trim() ?? item.commit.message,
     timestamp: item.commit.author?.date,
-    url: item.commit.url
+    url: item.html_url
   } as Commit
 }
 

@@ -18,15 +18,24 @@ async function run(): Promise<void> {
     const tableName = core.getInput('table')
     const docId = core.getInput('doc-id')
 
+    core.info(`fromTag: ${fromTag}`)
+    core.info(`branch: ${branch}`)
+    core.info(`owner: ${owner}`)
+    core.info(`repo: ${repo}`)
+    core.info(`tableName: ${tableName}`)
+    core.info(`docId: ${docId}`)
+
     core.endGroup()
 
     core.startGroup('🎣 Fetching Commits...')
     //Check latest commit written to table
     const lastCommitDate = await api.getLatestCommitDate(docId, tableName)
+    core.info(`lastCommitDate: ${lastCommitDate}`)
 
     let commitsToUpload: Commit[] = commitEvent
     //If nil the table is empty and we want to fetch all commits since tag
-    if (lastCommitDate === undefined) {
+    if (!lastCommitDate) {
+      core.info(`Fetching Commit History since tag: ${fromTag}`)
       const commitsSinceTag = await commits.getCommitHistory(
         token,
         owner,
@@ -39,17 +48,19 @@ async function run(): Promise<void> {
       }
     } else {
       //If we have a lastCommit date value get all commits since the date
+      core.info(`Fetching Commit History since date: ${lastCommitDate}`)
       const commitsSinceDate = await commits.getCommitsSinceDate(
         token,
         owner,
         repo,
         lastCommitDate
       )
+      core.info(`# of commits found since date: ${commitsSinceDate.length}`)
       if (commitsSinceDate !== undefined && commitsSinceDate.length > 0) {
         commitsToUpload = commitsSinceDate
       }
     }
-
+    core.info(`# of commits found: ${commitsToUpload.length}`)
     core.endGroup()
 
     core.startGroup('💪 Writing to Coda!')
