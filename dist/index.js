@@ -129,7 +129,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getCommitsSinceDate = exports.getCommitHistory = void 0;
+exports.getIssueTitle = exports.getCommitsSinceDate = exports.getCommitHistory = void 0;
+/* eslint-disable camelcase */
 /* eslint-disable github/no-then */
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
@@ -199,6 +200,29 @@ function dataItemToCommit(item) {
         url: item.html_url
     };
 }
+function getIssueTitle(token, owner, repo, issue_number) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+            const octokit = github.getOctokit(token);
+            yield octokit.rest.issues
+                .get({
+                owner,
+                repo,
+                issue_number
+            })
+                .then(response => {
+                const title = response.data.title;
+                core.info(`Found title! ${title}`);
+                resolve(title);
+            })
+                .catch(error => {
+                core.warning('Failed to retrieve issue', error);
+                reject(error);
+            });
+        }));
+    });
+}
+exports.getIssueTitle = getIssueTitle;
 function sortCommits(commits) {
     return commits.sort((a, b) => (0, moment_1.default)(a.timestamp).unix() - (0, moment_1.default)(b.timestamp).unix());
 }
@@ -288,6 +312,14 @@ function run() {
                 }
             }
             core.info(`# of commits found: ${commitsToUpload.length}`);
+            //Look through commit messages for any [{Github Issue #}] and trying fetching that issues title to replace the # in the commit message
+            for (const commit of commitsToUpload) {
+                replaceAsync(commit.message, /\[(?<issue>\d*?)]/gi, (issueNumber) => __awaiter(this, void 0, void 0, function* () {
+                    const title = yield commits.getIssueTitle(token, owner, repo, issueNumber);
+                    core.info(`Found title for ${issueNumber}!`);
+                    return `[${title}]`;
+                }));
+            }
             core.endGroup();
             core.startGroup('💪 Writing to Coda!');
             if (commitsToUpload === undefined || commitsToUpload.length === 0) {
@@ -304,6 +336,19 @@ function run() {
             if (error instanceof Error)
                 core.setFailed(error.message);
         }
+    });
+}
+function replaceAsync(str, regex, asyncFn) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const promises = [];
+        str.replace(regex, (match, ...args) => {
+            core.info(match);
+            core.info(args[0]);
+            const promise = asyncFn(args[0]);
+            promises.push(promise);
+        });
+        const data = yield Promise.all(promises);
+        return str.replace(regex, () => data.shift());
     });
 }
 run();
