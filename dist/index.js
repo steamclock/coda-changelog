@@ -313,8 +313,9 @@ function run() {
             }
             core.info(`# of commits found: ${commitsToUpload.length}`);
             //Look through commit messages for any [{Github Issue #}] and trying fetching that issues title to replace the # in the commit message
+            core.info(`Looking for github issues to link...`);
             for (const commit of commitsToUpload) {
-                replaceAsync(commit.message, /\[(?<issue>\d*?)]/gi, (issueNumber) => __awaiter(this, void 0, void 0, function* () {
+                yield replaceAsync(commit.message, /\[(?<issue>\d*?)]/gi, (issueNumber) => __awaiter(this, void 0, void 0, function* () {
                     const title = yield commits.getIssueTitle(token, owner, repo, issueNumber);
                     core.info(`Found title for ${issueNumber}!`);
                     return `[${title}]`;
