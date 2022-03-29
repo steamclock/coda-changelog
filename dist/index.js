@@ -263,6 +263,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __asyncValues = (this && this.__asyncValues) || function (o) {
+    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+    var m = o[Symbol.asyncIterator], i;
+    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 /* eslint-disable sort-imports */
 const core = __importStar(__nccwpck_require__(2186));
@@ -271,6 +278,7 @@ const rowBuilder = __importStar(__nccwpck_require__(6373));
 const github = __importStar(__nccwpck_require__(5438));
 const commits = __importStar(__nccwpck_require__(529));
 function run() {
+    var e_1, _a;
     return __awaiter(this, void 0, void 0, function* () {
         try {
             core.startGroup('📘 Reading input values!');
@@ -314,12 +322,23 @@ function run() {
             core.info(`# of commits found: ${commitsToUpload.length}`);
             //Look through commit messages for any [{Github Issue #}] and trying fetching that issues title to replace the # in the commit message
             core.info(`Looking for github issues to link...`);
-            for (const commit of commitsToUpload) {
-                yield replaceAsync(commit.message, /\[(?<issue>\d*?)]/gi, (issueNumber) => __awaiter(this, void 0, void 0, function* () {
-                    const title = yield commits.getIssueTitle(token, owner, repo, issueNumber);
-                    core.info(`Found title for ${issueNumber}!`);
-                    return `[${title}]`;
-                }));
+            try {
+                for (var commitsToUpload_1 = __asyncValues(commitsToUpload), commitsToUpload_1_1; commitsToUpload_1_1 = yield commitsToUpload_1.next(), !commitsToUpload_1_1.done;) {
+                    const commit = commitsToUpload_1_1.value;
+                    replaceAsync(commit.message, /\[(?<issue>\d*?)]/gi, (issueNumber) => __awaiter(this, void 0, void 0, function* () {
+                        core.info(`Firing get issue title for ${commit.message}`);
+                        const title = yield commits.getIssueTitle(token, owner, repo, issueNumber);
+                        core.info(`Found title for ${issueNumber}!`);
+                        return `[${title}]`;
+                    }));
+                }
+            }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (commitsToUpload_1_1 && !commitsToUpload_1_1.done && (_a = commitsToUpload_1.return)) yield _a.call(commitsToUpload_1);
+                }
+                finally { if (e_1) throw e_1.error; }
             }
             core.endGroup();
             core.startGroup('💪 Writing to Coda!');
