@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 /* eslint-disable github/no-then */
 import * as core from '@actions/core'
 import * as github from '@actions/github'
@@ -75,6 +76,32 @@ function dataItemToCommit(item: any): Commit {
     timestamp: item.commit.author?.date,
     url: item.html_url
   } as Commit
+}
+
+export async function getIssueTitle(
+  token: string,
+  owner: string,
+  repo: string,
+  issue_number: number
+): Promise<string> {
+  return new Promise(async (resolve, reject) => {
+    const octokit = github.getOctokit(token)
+    await octokit.rest.issues
+      .get({
+        owner,
+        repo,
+        issue_number
+      })
+      .then(response => {
+        const title = response.data.title
+        core.info(`Found title! ${title}`)
+        resolve(title)
+      })
+      .catch(error => {
+        core.warning('Failed to retrieve issue', error)
+        reject(error)
+      })
+  })
 }
 
 function sortCommits(commits: Commit[]): Commit[] {

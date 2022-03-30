@@ -61,6 +61,25 @@ async function run(): Promise<void> {
       }
     }
     core.info(`# of commits found: ${commitsToUpload.length}`)
+
+    //Look through commit messages for any [{Github Issue #}] and try fetching that issues title to replace the # in the commit message
+    core.info(`Looking for github issues to link...`)
+    for await (const commit of commitsToUpload) {
+      const updatedMessage = await replaceAsync(
+        commit.message,
+        /\[#?(?<issue>\d*?)]/gi,
+        async issueNumber => {
+          const title = await commits.getIssueTitle(
+            token,
+            owner,
+            repo,
+            issueNumber
+          )
+          return `[${title}]`
+        }
+      )
+      commit.message = updatedMessage
+    }
     core.endGroup()
 
     core.startGroup('💪 Writing to Coda!')
@@ -80,6 +99,16 @@ async function run(): Promise<void> {
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }
+}
+
+async function replaceAsync(str, regex, asyncFn) {
+  const promises = [] as any
+  str.replace(regex, (match, ...args) => {
+    const promise = asyncFn(args[0])
+    promises.push(promise)
+  })
+  const data = await Promise.all(promises)
+  return str.replace(regex, () => data.shift())
 }
 
 run()
