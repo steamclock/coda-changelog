@@ -320,12 +320,12 @@ function run() {
                 }
             }
             core.info(`# of commits found: ${commitsToUpload.length}`);
-            //Look through commit messages for any [{Github Issue #}] and trying fetching that issues title to replace the # in the commit message
+            //Look through commit messages for any [{Github Issue #}] and try fetching that issues title to replace the # in the commit message
             core.info(`Looking for github issues to link...`);
             try {
                 for (var commitsToUpload_1 = __asyncValues(commitsToUpload), commitsToUpload_1_1; commitsToUpload_1_1 = yield commitsToUpload_1.next(), !commitsToUpload_1_1.done;) {
                     const commit = commitsToUpload_1_1.value;
-                    const updatedMessage = yield replaceAsync(commit.message, /\[(?<issue>\d*?)]/gi, (issueNumber) => __awaiter(this, void 0, void 0, function* () {
+                    const updatedMessage = yield replaceAsync(commit.message, /\[#?(?<issue>\d*?)]/gi, (issueNumber) => __awaiter(this, void 0, void 0, function* () {
                         const title = yield commits.getIssueTitle(token, owner, repo, issueNumber);
                         return `[${title}]`;
                     }));
