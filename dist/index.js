@@ -326,11 +326,9 @@ function run() {
                 for (var commitsToUpload_1 = __asyncValues(commitsToUpload), commitsToUpload_1_1; commitsToUpload_1_1 = yield commitsToUpload_1.next(), !commitsToUpload_1_1.done;) {
                     const commit = commitsToUpload_1_1.value;
                     const updatedMessage = yield replaceAsync(commit.message, /\[(?<issue>\d*?)]/gi, (issueNumber) => __awaiter(this, void 0, void 0, function* () {
-                        core.info(`Firing get issue title for ${commit.message}`);
                         const title = yield commits.getIssueTitle(token, owner, repo, issueNumber);
                         return `[${title}]`;
                     }));
-                    core.info(`Updated Message ${updatedMessage}`);
                     commit.message = updatedMessage;
                 }
             }
@@ -363,8 +361,6 @@ function replaceAsync(str, regex, asyncFn) {
     return __awaiter(this, void 0, void 0, function* () {
         const promises = [];
         str.replace(regex, (match, ...args) => {
-            core.info(match);
-            core.info(args[0]);
             const promise = asyncFn(args[0]);
             promises.push(promise);
         });

@@ -69,7 +69,6 @@ async function run(): Promise<void> {
         commit.message,
         /\[(?<issue>\d*?)]/gi,
         async issueNumber => {
-          core.info(`Firing get issue title for ${commit.message}`)
           const title = await commits.getIssueTitle(
             token,
             owner,
@@ -79,7 +78,6 @@ async function run(): Promise<void> {
           return `[${title}]`
         }
       )
-      core.info(`Updated Message ${updatedMessage}`)
       commit.message = updatedMessage
     }
     core.endGroup()
@@ -106,8 +104,6 @@ async function run(): Promise<void> {
 async function replaceAsync(str, regex, asyncFn) {
   const promises = [] as any
   str.replace(regex, (match, ...args) => {
-    core.info(match)
-    core.info(args[0])
     const promise = asyncFn(args[0])
     promises.push(promise)
   })
