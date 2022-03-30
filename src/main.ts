@@ -65,17 +65,22 @@ async function run(): Promise<void> {
     //Look through commit messages for any [{Github Issue #}] and trying fetching that issues title to replace the # in the commit message
     core.info(`Looking for github issues to link...`)
     for await (const commit of commitsToUpload) {
-      replaceAsync(commit.message, /\[(?<issue>\d*?)]/gi, async issueNumber => {
-        core.info(`Firing get issue title for ${commit.message}`)
-        const title = await commits.getIssueTitle(
-          token,
-          owner,
-          repo,
-          issueNumber
-        )
-        core.info(`Found title for ${issueNumber}!`)
-        return `[${title}]`
-      })
+      const updatedMessage = await replaceAsync(
+        commit.message,
+        /\[(?<issue>\d*?)]/gi,
+        async issueNumber => {
+          core.info(`Firing get issue title for ${commit.message}`)
+          const title = await commits.getIssueTitle(
+            token,
+            owner,
+            repo,
+            issueNumber
+          )
+          return `[${title}]`
+        }
+      )
+      core.info(`Updated Message ${updatedMessage}`)
+      commit.message = updatedMessage
     }
     core.endGroup()
 

@@ -325,12 +325,13 @@ function run() {
             try {
                 for (var commitsToUpload_1 = __asyncValues(commitsToUpload), commitsToUpload_1_1; commitsToUpload_1_1 = yield commitsToUpload_1.next(), !commitsToUpload_1_1.done;) {
                     const commit = commitsToUpload_1_1.value;
-                    replaceAsync(commit.message, /\[(?<issue>\d*?)]/gi, (issueNumber) => __awaiter(this, void 0, void 0, function* () {
+                    const updatedMessage = yield replaceAsync(commit.message, /\[(?<issue>\d*?)]/gi, (issueNumber) => __awaiter(this, void 0, void 0, function* () {
                         core.info(`Firing get issue title for ${commit.message}`);
                         const title = yield commits.getIssueTitle(token, owner, repo, issueNumber);
-                        core.info(`Found title for ${issueNumber}!`);
                         return `[${title}]`;
                     }));
+                    core.info(`Updated Message ${updatedMessage}`);
+                    commit.message = updatedMessage;
                 }
             }
             catch (e_1_1) { e_1 = { error: e_1_1 }; }
